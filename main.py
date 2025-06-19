@@ -1,3 +1,2 @@
-print("Yunganina Mamani Gary Fernando")
-print("llanque Tipo Cristhian Edy")
+print("Yunganina Mamani Gary F3rnando")
 print("llanque Tipo Cristhian Edy")
