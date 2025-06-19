@@ -1,21 +1,23 @@
-name: Ejecutar script Python
+name: test actions
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
-  run-python:
+  test-actions:
     runs-on: ubuntu-latest
-
     steps:
+      # Clonar el repositorio
       - name: Clonar el repositorio
         uses: actions/checkout@v3
 
+      # Instalar Python
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.12'  # Usa 3.12 (estable)
 
+      # Ejecutar el script Python
       - name: Ejecutar el script
         run: python main.py
