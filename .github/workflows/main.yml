@@ -12,9 +12,6 @@ jobs:
       - name: Clonar el repositorio
         uses: actions/checkout@v3
 
-      - name: Mostrar archivos
-        run: ls -R
-
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
