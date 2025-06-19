@@ -1,5 +1,5 @@
 print("Yunganina Mamani Gary F3rnando")
-print("llanque Tipo Cristhian Edy")
+print("llanque Tipo Cristhian Edy v2")
 print("Kana Chullo Fray")
 print("Ccori Ccoarite Guver Leon")
 print("Kana Chullo Fray Benjamin")
