@@ -97,4 +97,4 @@ jobs:
             sudo apt update -y
             sudo apt install git -y
             cd /home/ubuntu
-            git clone https://github.com/GaryFernandoYM/FEGF-project.git
+            git clone https://github.com/GaryFernandoYM/Producer.git
