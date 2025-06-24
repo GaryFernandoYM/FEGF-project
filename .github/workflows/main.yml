@@ -60,13 +60,41 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
+      - name: Crear EC2 con Terraform
+        run: |
+          cd ec2
+          terraform init
+          terraform apply -auto-approve \
+            -var="aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var="aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var="aws_region=us-east-1" \
+            -var="key_name=mi-key-fegf" # cambia por el nombre exacto de tu key pair
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
 
-      - name: Ejecutar script en EC2
+      - name: Obtener IP pública de EC2
+        id: ec2_ip
+        run: |
+          cd ec2
+          echo "PUBLIC_IP=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+
+      - name: Esperar que EC2 esté lista
+        run: |
+          for i in {1..15}; do
+            nc -zv ${{ steps.ec2_ip.outputs.PUBLIC_IP }} 22 && echo "✅ EC2 activa" && break
+            echo "⏳ Esperando que EC2 esté disponible..."; sleep 5
+          done
+
+      - name: Conectarse y clonar proyecto en EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ steps.ec2_ip.outputs.PUBLIC_IP }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/scripts
-            bash script.sh
+            sudo apt update -y
+            sudo apt install git -y
+            cd /home/ubuntu
+            git clone https://github.com/GaryFernandoYM/FEGF-project.git
