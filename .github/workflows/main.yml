@@ -1,21 +1,61 @@
-name: Ejecutar script Python
+name: Orquestador de infraestructura
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  run-python:
+  orquestar-todo:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clonar el repositorio
+      - name: Clonar FEGF-lambda
         uses: actions/checkout@v3
-
-      - name: Configurar Python
-        uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          repository: GaryFernandoYM/FEGF-lambda
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: lambda
 
-      - name: Ejecutar el script
-        run: python ./main.py
+      - name: Clonar FEGF-s3
+        uses: actions/checkout@v3
+        with:
+          repository: GaryFernandoYM/FEGF-s3
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: s3
+
+      - name: Clonar FEGF-ec2
+        uses: actions/checkout@v3
+        with:
+          repository: GaryFernandoYM/FEGF-ec2
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: ec2
+
+      - name: Deploy S3 con Terraform
+        run: |
+          cd s3
+          terraform init
+          terraform apply -auto-approve -var="bucket_name=bucket-lambda-s3-fegf"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Deploy Lambda con Terraform
+        run: |
+          cd ../lambda
+          terraform init
+          terraform apply -auto-approve -var="bucket_name=bucket-lambda-s3-fegf" \
+            -var="function_name=lambda-s3-fegf"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Ejecutar script en EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/scripts
+            bash script.sh
