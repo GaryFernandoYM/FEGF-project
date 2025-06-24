@@ -48,7 +48,7 @@ jobs:
 
       - name: Deploy Lambda con Terraform
         run: |
-          cd ../lambda
+          cd lambda
           terraform init
           terraform apply -auto-approve -var="bucket_name=bucket-lambda-s3-fegf" \
             -var="function_name=lambda-s3-fegf"
