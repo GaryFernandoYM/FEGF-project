@@ -62,7 +62,6 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
 
  
-        # 1. Crear la EC2 con Terraform
       - name: Crear EC2 con Terraform
         run: |
           cd ec2
@@ -77,7 +76,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
 
-      # 1. Crear la EC2 con Terraform
       - name: Crear EC2 con Terraform
         run: |
           cd ec2
