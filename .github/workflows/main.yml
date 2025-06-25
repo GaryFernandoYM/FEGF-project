@@ -67,18 +67,18 @@ jobs:
         run: |
           IP=$(terraform output -raw public_ip | head -n 1 | tr -d '\n')
           echo "public_ip=$IP" >> "$GITHUB_OUTPUT"
-      # Después del apply de EC2
+            # Subir clave privada como artifact
       - name: Subir clave privada como artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ec2-private-key
+          name: ec2-private-key      # Asegúrate de que este nombre coincida
           path: ec2/generated_key.pem
 
-      # Instalar netcat (necesario para esperar puerto 22)
+      # Instalar netcat
       - name: Instalar netcat
         run: sudo apt-get update -y && sudo apt-get install -y netcat-openbsd
 
-      # Esperar que EC2 esté activa (SSH disponible)
+      # Esperar que EC2 esté activa (puerto 22)
       - name: Esperar que EC2 esté lista
         run: |
           for i in {1..15}; do
@@ -86,18 +86,18 @@ jobs:
             echo "⏳ Esperando que EC2 esté disponible..."; sleep 5
           done
 
-      # Descargar el archivo .pem generado por Terraform
+      # Descargar el artifact (clave privada)
       - name: Descargar clave privada desde artifact
         uses: actions/download-artifact@v4
         with:
-          name: ec2-private-key
+          name: ec2-private-key      # Asegúrate de que coincida con el nombre de arriba
           path: ./key
 
-      # Ajustar permisos para que el archivo sea válido para SSH
+      # Ajustar permisos
       - name: Ajustar permisos a la clave privada
         run: chmod 400 ./key/generated_key.pem
 
-      # Conexión vía SSH y clonación del repositorio
+      # Conexión SSH y clonar el proyecto
       - name: Conectarse y clonar proyecto en EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
