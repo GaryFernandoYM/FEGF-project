@@ -60,6 +60,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
+          
       - name: Crear EC2 con Terraform
         run: |
           cd ec2
@@ -74,23 +75,33 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
 
+      - name: Instalar jq
+        run: sudo apt-get update -y && sudo apt-get install -y jq
+
       - name: Obtener IP pública de EC2
         id: ec2_ip
         working-directory: ec2
         run: |
-          IP=$(terraform output -raw public_ip)
+          # Terraform → JSON → jq → valor limpio
+          IP=$(terraform output -json | jq -r '.public_ip.value')
           echo "public_ip=$IP" >> "$GITHUB_OUTPUT"
+
+      # --------------------------------------
+      # 7. Instalar netcat y esperar que EC2 levante SSH
+      # --------------------------------------
+      - name: Instalar netcat
+        run: sudo apt-get install -y netcat
 
       - name: Esperar que EC2 esté lista
         run: |
           for i in {1..15}; do
-            nc -zv ${{ steps.ec2_ip.outputs.public_ip }} 22 && echo "EC2 activa" && break
-            echo "Esperandoo que EC2 esté disponible..."; sleep 5
+            nc -z ${{ steps.ec2_ip.outputs.public_ip }} 22 && echo "✅ EC2 activa" && break
+            echo "⏳ Esperando que EC2 esté disponible..."; sleep 5
           done
 
-      - name: Instalar netcat
-        run: sudo apt-get update -y && sudo apt-get install -y netcat
-
+      # --------------------------------------
+      # 8. SSH y clonar el proyecto
+      # --------------------------------------
       - name: Conectarse y clonar proyecto en EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
