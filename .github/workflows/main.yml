@@ -76,25 +76,29 @@ jobs:
 
       - name: Obtener IP pública de EC2
         id: ec2_ip
+        working-directory: ec2
         run: |
-          cd ec2
-          echo "PUBLIC_IP=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+          IP=$(terraform output -raw public_ip)
+          echo "public_ip=$IP" >> "$GITHUB_OUTPUT"
 
       - name: Esperar que EC2 esté lista
         run: |
           for i in {1..15}; do
-            nc -zv ${{ steps.ec2_ip.outputs.PUBLIC_IP }} 22 && echo "✅ EC2 activa" && break
-            echo "⏳ Esperando que EC2 esté disponible..."; sleep 5
+            nc -zv ${{ steps.ec2_ip.outputs.public_ip }} 22 && echo "EC2 activa" && break
+            echo "Esperandoo que EC2 esté disponible..."; sleep 5
           done
+
+      - name: Instalar netcat
+        run: sudo apt-get update -y && sudo apt-get install -y netcat
 
       - name: Conectarse y clonar proyecto en EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ steps.ec2_ip.outputs.PUBLIC_IP }}
+          host: ${{ steps.ec2_ip.outputs.public_ip }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo apt update -y
-            sudo apt install git -y
+            sudo apt-get update -y
+            sudo apt-get install -y git
             cd /home/ubuntu
             git clone https://github.com/GaryFernandoYM/Producer.git
