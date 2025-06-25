@@ -78,13 +78,15 @@ jobs:
       - name: Instalar jq
         run: sudo apt-get update -y && sudo apt-get install -y jq
 
-      - name: Obtener IP pública de EC2
+      - name: Obtener IP pública de EC2 (JSON limpio)
         id: ec2_ip
         working-directory: ec2
+        env:
+          TF_LOG: ""                  # ⇦ fuerza “sin logs”
         run: |
-          # Terraform → JSON → jq → valor limpio
           IP=$(terraform output -json | jq -r '.public_ip.value')
           echo "public_ip=$IP" >> "$GITHUB_OUTPUT"
+
 
       # --------------------------------------
       # 7. Instalar netcat y esperar que EC2 levante SSH
