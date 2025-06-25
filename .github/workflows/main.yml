@@ -67,46 +67,62 @@ jobs:
         run: |
           IP=$(terraform output -raw public_ip | head -n 1 | tr -d '\n')
           echo "public_ip=$IP" >> "$GITHUB_OUTPUT"
-            # Subir clave privada como artifact
+      # 1. Crear la EC2 con Terraform (ya tienes esta parte)
+      - name: Crear EC2 con Terraform
+        run: |
+          cd ec2
+          terraform init
+          terraform apply -auto-approve \
+            -var="aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var="aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var="aws_region=us-east-1" \
+            -var="key_name=mi-key-fegf"  # Cambia por tu clave exacta si es necesario
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+
+      # 2. Subir el artifact con la clave privada generada por Terraform
       - name: Subir clave privada como artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ec2-private-key      # Asegúrate de que este nombre coincida
+          name: ec2-private-key     # Asegúrate de que el nombre coincida con la descarga
           path: ec2/generated_key.pem
 
-      # Instalar netcat
+      # 3. Instalar netcat
       - name: Instalar netcat
         run: sudo apt-get update -y && sudo apt-get install -y netcat-openbsd
 
-      # Esperar que EC2 esté activa (puerto 22)
+      # 4. Esperar que EC2 esté disponible (usando nc sin la opción -z)
       - name: Esperar que EC2 esté lista
         run: |
           for i in {1..15}; do
-            nc -z ${{ steps.ec2_ip.outputs.public_ip }} 22 && echo "✅ EC2 activa" && break
+            nc -v ${{ steps.ec2_ip.outputs.public_ip }} 22 && echo "✅ EC2 activa" && break
             echo "⏳ Esperando que EC2 esté disponible..."; sleep 5
           done
 
-      # Descargar el artifact (clave privada)
+      # 5. Descargar el artifact de la clave privada
       - name: Descargar clave privada desde artifact
         uses: actions/download-artifact@v4
         with:
-          name: ec2-private-key      # Asegúrate de que coincida con el nombre de arriba
+          name: ec2-private-key     # Debe coincidir con el nombre en la subida
           path: ./key
 
-      # Ajustar permisos
+      # 6. Ajustar permisos a la clave privada para uso SSH
       - name: Ajustar permisos a la clave privada
         run: chmod 400 ./key/generated_key.pem
 
-      # Conexión SSH y clonar el proyecto
+      # 7. Conectarse y clonar el proyecto en EC2
       - name: Conectarse y clonar proyecto en EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ steps.ec2_ip.outputs.public_ip }}
           username: ubuntu
-          key_path: ./key/generated_key.pem
+          key_path: ./key/generated_key.pem  # Usa el archivo descargado
           script: |
             sudo apt-get update -y
             sudo apt-get install -y git
             cd /home/ubuntu
             git clone https://github.com/GaryFernandoYM/Producer.git
+
 
