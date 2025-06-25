@@ -62,6 +62,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
 
  
+        # 1. Crear la EC2 con Terraform
       - name: Crear EC2 con Terraform
         run: |
           cd ec2
@@ -70,12 +71,11 @@ jobs:
             -var="aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -var="aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -var="aws_region=us-east-1" \
-            -var="key_name=mi-key-fegf"  # Cambia por tu clave exacta si es necesario
+            -var="key_name=mi-key-fegf"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
-
 
       # 2. Obtener IP pública de la EC2 creada por Terraform
       - name: Obtener IP pública de EC2
@@ -89,7 +89,7 @@ jobs:
       - name: Subir clave privada como artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ec2-private-key
+          name: ec2-private-key     # Asegúrate de que el nombre coincida con la descarga
           path: ec2/generated_key.pem
 
       # 4. Instalar netcat
@@ -108,7 +108,7 @@ jobs:
       - name: Descargar clave privada desde artifact
         uses: actions/download-artifact@v4
         with:
-          name: ec2-private-key
+          name: ec2-private-key     # Asegúrate de que el nombre coincida con el nombre en la subida
           path: ./key
 
       # 7. Ajustar permisos a la clave privada para uso SSH
@@ -127,5 +127,3 @@ jobs:
             sudo apt-get install -y git
             cd /home/ubuntu
             git clone https://github.com/GaryFernandoYM/Producer.git
-
-
