@@ -100,6 +100,9 @@ jobs:
           IP=$(terraform output -raw public_ip | tr -d '\n' | tr -d ' ')  # Elimina saltos de línea y espacios
           echo "public_ip=$IP" >> "$GITHUB_OUTPUT"
 
+      - name: Verificar IP pública obtenida
+        run: echo "IP pública obtenida: ${{ steps.ec2_ip.outputs.public_ip }}"
+
       # 3. Subir el artifact con la clave privada generada por Terraform
       - name: Subir clave privada como artifact
         uses: actions/upload-artifact@v4
