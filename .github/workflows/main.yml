@@ -1,4 +1,4 @@
-name: Orquestador de infraestructura
+name: Orquestador de infraestructuraa
 
 on:
   push:
@@ -91,16 +91,3 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
-
-      # 2. Obtener IP pública de la EC2 creada por Terraform
-      - name: Obtener IP pública de EC2
-        id: ec2_ip
-        working-directory: ec2
-        run: |
-          IP=$(terraform output -raw public_ip | tr -d '\n' | tr -d ' ')  # Elimina saltos de línea y espacios
-          echo "public_ip=$IP" >> "$GITHUB_OUTPUT"
-
-# 3. Verificar IP pública obtenida
-      - name: Verificar IP pública obtenida
-        run: |
-          echo "IP pública obtenida: ${{ steps.ec2_ip.outputs.public_ip }}"
