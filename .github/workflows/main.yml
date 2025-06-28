@@ -14,7 +14,12 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.7
-
+      - name: Clonar FEGF-project
+        uses: actions/checkout@v3
+        with:
+          repository: GaryFernandoYM/FEGF-project
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: project
 
       - name: Clonar FEGF-s3
         uses: actions/checkout@v3
@@ -35,7 +40,8 @@ jobs:
 
       - name: Subir archivo CSV al bucket S3
         run: |
-          aws s3 cp ./csv/kc_house_datcsv.csv s3://bucket-lambda-s3-fegf/
+          aws s3 cp ./project/csv/kc_house_datcsv.csv s3://bucket-lambda-s3-fegf/
+
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
