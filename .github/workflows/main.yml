@@ -15,12 +15,6 @@ jobs:
         with:
           terraform_version: 1.5.7
 
-      - name: Clonar FEGF-lambda
-        uses: actions/checkout@v3
-        with:
-          repository: GaryFernandoYM/FEGF-lambda
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          path: lambda
 
       - name: Clonar FEGF-s3
         uses: actions/checkout@v3
@@ -28,13 +22,6 @@ jobs:
           repository: GaryFernandoYM/FEGF-s3
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           path: s3
-
-      - name: Clonar FEGF-ec2
-        uses: actions/checkout@v3
-        with:
-          repository: GaryFernandoYM/FEGF-ec2
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          path: ec2
 
       - name: Deploy S3 con Terraform
         run: |
@@ -45,46 +32,10 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
-      - name: Crear function.zip para Lambda
-        run: |
-          cd lambda
-          zip function.zip *.py
 
-      - name: Deploy Lambda con Terraform
+      - name: Subir archivo CSV al bucket S3
         run: |
-          cd lambda
-          terraform init
-          terraform apply -auto-approve -var="bucket_name=bucket-lambda-s3-fegf" \
-            -var="function_name=lambda-s3-fegf"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-
- 
-      - name: Crear EC2 con Terraform
-        run: |
-          cd ec2
-          terraform init
-          terraform apply -auto-approve \
-            -var="aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var="aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -var="aws_region=us-east-1" \
-            -var="key_name=mi-key-fegf"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-
-      - name: Crear EC2 con Terraform
-        run: |
-          cd ec2
-          terraform init
-          terraform apply -auto-approve \
-            -var="aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var="aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -var="aws_region=us-east-1" \
-            -var="key_name=mi-key-fegf"
+          aws s3 cp ./csv/kc_house_datcsv.csv s3://bucket-lambda-s3-fegf/
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
