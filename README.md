@@ -20,6 +20,15 @@ Este orquestador coordina varios repositorios de GitHub para una infraestructura
 | `FEGF-lambda`    | Código Python y Terraform para la función Lambda            |
 
 ---
+Este orquestador coordina varios repositorios de GitHub para una infraestructura modular:
+
+| Repositorio      | Contenido                                                   |
+|------------------|-------------------------------------------------------------|
+| `FEGF-project`   | Archivos de datos (como `kc_house_datcsv.csv`)              |
+| `FEGF-s3`        | Código Terraform para crear y gestionar el bucket S3        |
+| `FEGF-lambda`    | Código Python y Terraform para la función Lambda            |
+
+--- PRUEBA DE PUSH
 
 ## ⚙️ Flujo automatizado del workflow
 
